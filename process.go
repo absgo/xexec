@@ -10,9 +10,24 @@ import (
 
 // Process represents a process that is executed.
 type Process interface {
+	// Pid returns the ID of the process.
 	Pid() int
+
+	// Wait waits for the Process to exit, and then returns a
+	// ProcessState describing its status and an error, if any.
+	// Wait releases any resources associated with the Process.
+	// On most operating systems, the Process must be a child
+	// of the current process or an error will be returned.
 	Wait() (ProcessState, error)
+
+	// Kill causes the Process to exit immediately. Kill does not wait until
+	// the Process has actually exited. This only kills the Process itself,
+	// not any other processes it may have started.
 	Kill() error
+
+	// Release releases any resources associated with the Process p,
+	// rendering it unusable in the future.
+	// Release only needs to be called if Wait is not.
 	Release() error
 }
 
@@ -60,15 +75,18 @@ func (o *osProcess) Signal(sig Signal) error {
 
 // newOsProcess starts a new process using the default implementation in the
 // "os" package.
-func newOsProcess(cmdConf *ProcessConf) (Process, error) {
-	cmd := exec.CommandContext(cmdConf.Ctx, cmdConf.Name, cmdConf.Args...)
-	cmd.Dir = cmdConf.Dir
-	cmd.Env = cmdConf.Env
-	cmd.ExtraFiles = cmdConf.ExtraFiles
-	cmd.Stdin = cmdConf.Stdin
-	cmd.Stderr = cmdConf.Stderr
-	cmd.Stdout = cmdConf.Stdout
-	cmd.SysProcAttr = cmdConf.SysProcAttr
+func newOsProcess(procConf *ProcessConf) (Process, error) {
+	cmd := exec.CommandContext(procConf.Ctx, procConf.Name)
+	// Set the path after creating the command so that we are able to control the first
+	// argument.
+	cmd.Args = procConf.Args
+	cmd.Dir = procConf.Dir
+	cmd.Env = procConf.Env
+	cmd.ExtraFiles = procConf.ExtraFiles
+	cmd.Stdin = procConf.Stdin
+	cmd.Stderr = procConf.Stderr
+	cmd.Stdout = procConf.Stdout
+	cmd.SysProcAttr = procConf.SysProcAttr
 	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
@@ -86,13 +104,13 @@ type ProcessConf struct {
 	Ctx context.Context
 
 	// Name is the name of the program to run.
-	// If name contains no path separators, Exec.LookPath is used to
+	// If name contains no path separators, {Exec.LookPath} is used to
 	// resolve name to a complete path if possible. Otherwise it uses name
 	// directly as the program path.
 	Name string
 
 	// Args holds command line arguments, including the command as Args[0].
-	// If the Args field is empty or nil, {Path} is used.
+	// If the Args field is empty or nil, {Name} is used.
 	Args []string
 
 	// Env specifies the environment of the process.
