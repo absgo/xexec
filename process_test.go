@@ -2,16 +2,21 @@ package xexec
 
 import (
 	"context"
-	"runtime"
+	"strconv"
 	"testing"
 )
 
+func getSleepCmdLine(sleepSec int) []string {
+	return []string{"./bin/sleep", strconv.Itoa(sleepSec)}
+}
+
 func TestNewOsProcess_waitForExit(t *testing.T) {
 	t.Parallel()
+	cmdLine := getSleepCmdLine(0)
 	proc, err := newOsProcess(&ProcessConf{
 		Ctx:  context.Background(),
-		Name: "go",
-		Args: []string{"go", "help"},
+		Name: cmdLine[0],
+		Args: cmdLine,
 	})
 	if err != nil {
 		t.Fatalf("failed to create process: %v", err)
@@ -27,16 +32,11 @@ func TestNewOsProcess_waitForExit(t *testing.T) {
 
 func TestNewOsProcess_killProcess(t *testing.T) {
 	t.Parallel()
-	cmdPath := "sleep"
-	cmdArgs := []string{"sleep", "100"}
-	if runtime.GOOS == "windows" {
-		cmdPath = "timeout"
-		cmdArgs = []string{"timeout", "/t", "100"}
-	}
+	cmdLine := getSleepCmdLine(100)
 	proc, err := newOsProcess(&ProcessConf{
 		Ctx:  context.Background(),
-		Name: cmdPath,
-		Args: cmdArgs,
+		Name: cmdLine[0],
+		Args: cmdLine,
 	})
 	if err != nil {
 		t.Fatalf("failed to create process: %v", err)
