@@ -94,7 +94,12 @@ func newOsProcess(procConf *ProcessConf) (Process, error) {
 }
 
 func newOsProcessWithStarter(procConf *ProcessConf, starter func(cmd *exec.Cmd) error) (Process, error) {
-	cmd := exec.CommandContext(procConf.Ctx, procConf.Name)
+	var cmd *exec.Cmd
+	if procConf.Ctx != nil {
+		cmd = exec.CommandContext(procConf.Ctx, procConf.Name)
+	} else {
+		cmd = exec.Command(procConf.Name)
+	}
 	// Set the path after creating the command so that we are able to control the first
 	// argument.
 	cmd.Args = procConf.Args
