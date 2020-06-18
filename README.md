@@ -1,7 +1,8 @@
 # xexec
-A Go library that allows you to abstract the operations related to process execution.
+A Go library that allows you to abstract the operations related to process execution.  
+![CI Status](https://github.com/absgo/xexec/workflows/CI/badge.svg)
 
-# Unit Test
+## Unit Test
 The unit tests depend on some simple executables. You can use the command below to build the executables.
 ```
 mkdir bin
