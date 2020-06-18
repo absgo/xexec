@@ -88,6 +88,12 @@ func (o *osProcess) Signal(sig Signal) error {
 // newOsProcess starts a new process using the default implementation in the
 // "os" package.
 func newOsProcess(procConf *ProcessConf) (Process, error) {
+	return newOsProcessWithStarter(procConf, func(cmd *exec.Cmd) error {
+		return cmd.Start()
+	})
+}
+
+func newOsProcessWithStarter(procConf *ProcessConf, starter func(cmd *exec.Cmd) error) (Process, error) {
 	cmd := exec.CommandContext(procConf.Ctx, procConf.Name)
 	// Set the path after creating the command so that we are able to control the first
 	// argument.
@@ -99,7 +105,7 @@ func newOsProcess(procConf *ProcessConf) (Process, error) {
 	cmd.Stderr = procConf.Stderr
 	cmd.Stdout = procConf.Stdout
 	cmd.SysProcAttr = procConf.SysProcAttr
-	if err := cmd.Start(); err != nil {
+	if err := starter(cmd); err != nil {
 		return nil, err
 	}
 	return &osProcess{
