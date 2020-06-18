@@ -25,19 +25,31 @@ type Process interface {
 	// not any other processes it may have started.
 	Kill() error
 
+	// Signal sends a signal to the Process.
+	// Sending Interrupt on Windows is not implemented.
+	Signal(sig Signal) error
+
 	// Release releases any resources associated with the Process p,
 	// rendering it unusable in the future.
 	// Release only needs to be called if Wait is not.
 	Release() error
 }
 
+type osProcessCtrl interface {
+	Wait() (*os.ProcessState, error)
+	Kill() error
+	Release() error
+	Signal(sig os.Signal) error
+}
+
 type osProcess struct {
-	proc *os.Process
+	pid  int
+	proc osProcessCtrl
 }
 
 // Pid returns the ID of the process.
 func (o *osProcess) Pid() int {
-	return o.proc.Pid
+	return o.pid
 }
 
 // Wait waits for the Process to exit, and then returns a
@@ -91,6 +103,7 @@ func newOsProcess(procConf *ProcessConf) (Process, error) {
 		return nil, err
 	}
 	return &osProcess{
+		pid:  cmd.Process.Pid,
 		proc: cmd.Process,
 	}, nil
 }

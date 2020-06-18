@@ -10,7 +10,7 @@ func getSleepCmdLine(sleepSec int) []string {
 	return []string{"./bin/sleep", strconv.Itoa(sleepSec)}
 }
 
-func TestNewOsProcess_waitForExit(t *testing.T) {
+func TestProcess_Wait(t *testing.T) {
 	t.Parallel()
 	cmdLine := getSleepCmdLine(0)
 	proc, err := newOsProcess(&ProcessConf{
@@ -30,7 +30,7 @@ func TestNewOsProcess_waitForExit(t *testing.T) {
 	}
 }
 
-func TestNewOsProcess_killProcess(t *testing.T) {
+func TestProcess_Kill(t *testing.T) {
 	t.Parallel()
 	cmdLine := getSleepCmdLine(100)
 	proc, err := newOsProcess(&ProcessConf{
