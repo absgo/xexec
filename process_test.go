@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	os "os"
+	"os"
 	"os/exec"
 	"reflect"
 	"strconv"
@@ -19,27 +19,7 @@ func getSleepCmdLine(sleepSec int) []string {
 	return []string{"./bin/sleep", strconv.Itoa(sleepSec)}
 }
 
-func TestProcess_Wait(t *testing.T) {
-	t.Parallel()
-	cmdLine := getSleepCmdLine(0)
-	proc, err := newOsProcess(&ProcessConf{
-		Ctx:  context.Background(),
-		Name: cmdLine[0],
-		Args: cmdLine,
-	})
-	if err != nil {
-		t.Fatalf("failed to create process: %v", err)
-	}
-	procState, err := proc.Wait()
-	if err != nil {
-		t.Fatalf("failed to wait: %v", err)
-	}
-	if procState.ExitCode() != 0 {
-		t.Fatalf("got exit code: %d, want: %d", procState.ExitCode(), 0)
-	}
-}
-
-func TestProcess_Kill(t *testing.T) {
+func TestNewOsProcess(t *testing.T) {
 	t.Parallel()
 	cmdLine := getSleepCmdLine(100)
 	proc, err := newOsProcess(&ProcessConf{
@@ -47,20 +27,95 @@ func TestProcess_Kill(t *testing.T) {
 		Name: cmdLine[0],
 		Args: cmdLine,
 	})
-	if err != nil {
-		t.Fatalf("failed to create process: %v", err)
-	}
-	defer func() {
-		if err := proc.Release(); err != nil {
-			t.Fatalf("failed to release: %v", err)
-		}
-	}()
-	if err := proc.Kill(); err != nil {
-		t.Fatalf("failed to kill process: %v", err)
-	}
+	require.Nil(t, err)
+	defer proc.Wait()
+	osProc := proc.(*osProcess).proc.(*os.Process)
+	require.Nil(t, osProc.Kill())
 }
 
-func TestNewOsProcessWithStarter_fail(t *testing.T) {
+func TestProcess_Pid(t *testing.T) {
+	t.Parallel()
+	proc := &osProcess{
+		pid: 123,
+	}
+	gotPid := proc.Pid()
+	require.Equal(t, gotPid, 123)
+}
+
+func TestProcess_Kill(t *testing.T) {
+	t.Parallel()
+	procCtrl := new(mockOsProcessCtrl)
+	defer procCtrl.AssertExpectations(t)
+	proc := &osProcess{
+		pid:  123,
+		proc: procCtrl,
+	}
+	wantErr := errors.New("")
+	procCtrl.On("Kill").
+		Once().
+		Return(wantErr)
+	err := proc.Kill()
+	require.Same(t, err, wantErr)
+}
+
+func TestProcess_Signal(t *testing.T) {
+	t.Parallel()
+	procCtrl := new(mockOsProcessCtrl)
+	defer procCtrl.AssertExpectations(t)
+	proc := &osProcess{
+		pid:  123,
+		proc: procCtrl,
+	}
+	wantErr := errors.New("")
+	procCtrl.On("Signal", syscall.SIGINT).
+		Once().
+		Return(wantErr)
+	err := proc.Signal(syscall.SIGINT)
+	require.Same(t, err, wantErr)
+}
+
+func TestProcess_Release(t *testing.T) {
+	t.Parallel()
+	procCtrl := new(mockOsProcessCtrl)
+	defer procCtrl.AssertExpectations(t)
+	proc := &osProcess{
+		pid:  123,
+		proc: procCtrl,
+	}
+	wantErr := errors.New("")
+	procCtrl.On("Release").
+		Once().
+		Return(wantErr)
+	err := proc.Release()
+	require.Same(t, err, wantErr)
+}
+
+func TestProcess_Wait(t *testing.T) {
+	t.Parallel()
+	procCtrl := new(mockOsProcessCtrl)
+	defer procCtrl.AssertExpectations(t)
+	proc := &osProcess{
+		pid:  123,
+		proc: procCtrl,
+	}
+	wantErr := errors.New("")
+	procCtrl.On("Wait").
+		Once().
+		Return(new(os.ProcessState), wantErr)
+	procState, err := proc.Wait()
+	require.Nil(t, procState)
+	require.Same(t, err, wantErr)
+
+	wantProcState := new(os.ProcessState)
+	procCtrl.On("Wait").
+		Once().
+		Return(wantProcState, nil)
+	procState, err = proc.Wait()
+	require.Nil(t, err)
+	require.Same(t, procState.(*osProcessState).state, wantProcState)
+}
+
+func TestNewOsProcessWithStarter(t *testing.T) {
 	t.Parallel()
 	buf1 := &bytes.Buffer{}
 	buf2 := &bytes.Buffer{}
