@@ -1,8 +1,34 @@
 # xexec
-A Go library that allows you to abstract the operations related to process execution.  
+It's a Go library that allows you to abstract the operations related to process execution.  
 ![CI Status](https://github.com/absgo/xexec/workflows/CI/badge.svg)
 
+## Usage
+You can create an instance of `Exec` as below:
+```
+import github.com/absgo/xexec
+func main() {
+    exec := xexec.NewOsExec()
+}
+```
+Then, all the operations related to process execution can be achieved via the `Exec` instance.  
+For example, to start a process, you can use:
+```
+proc, err := exec.StartProcess(&ProcessConf{
+		Name: "ls",
+		Args: []string{"ls", "/"},
+	})
+if err != nil {
+    log.Fatalf("failed to start process: %v", err)
+}
+_, err = proc.Wait()
+if err != nil {
+    log.Fatalf("failed to wait on process: %v", err)
+}
+log.Print("Success")
+```
+
 ## Unit Test
+If you want to run the unit tests by yourself, follow the steps below.  
 The unit tests depend on some simple executables. You can use the command below to build the executables.
 ```
 mkdir bin
