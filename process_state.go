@@ -1,7 +1,5 @@
 package xexec
 
-import "os"
-
 // ProcessState stores information about a process.
 type ProcessState interface {
 	ExitCode() int
@@ -9,25 +7,26 @@ type ProcessState interface {
 	Success() bool
 }
 
-type osProcessState struct {
-	state *os.ProcessState
+// processStateDelegater is a used for obtaining the state of a process, but the
+// information is delegated to another process state instance.
+type processStateDelegater struct {
+	delegate ProcessState
 }
 
-func newProcessState(state *os.ProcessState) ProcessState {
-	return &osProcessState{
-		state: state,
+func newProcessStateDelegater(delegate ProcessState) ProcessState {
+	return &processStateDelegater{
+		delegate: delegate,
 	}
 }
 
-func (o *osProcessState) ExitCode() int {
-
-	return o.state.ExitCode()
+func (o *processStateDelegater) ExitCode() int {
+	return o.delegate.ExitCode()
 }
 
-func (o *osProcessState) String() string {
-	return o.state.String()
+func (o *processStateDelegater) String() string {
+	return o.delegate.String()
 }
 
-func (o *osProcessState) Success() bool {
-	return o.state.Success()
+func (o *processStateDelegater) Success() bool {
+	return o.delegate.Success()
 }

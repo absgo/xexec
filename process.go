@@ -62,7 +62,7 @@ func (o *osProcess) Wait() (ProcessState, error) {
 	if err != nil {
 		return nil, err
 	}
-	return newProcessState(state), nil
+	return newProcessStateDelegater(state), nil
 }
 
 // Kill causes the Process to exit immediately. Kill does not wait until

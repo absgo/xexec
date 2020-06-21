@@ -112,7 +112,7 @@ func TestProcess_Wait(t *testing.T) {
 		Return(wantProcState, nil)
 	procState, err = proc.Wait()
 	require.Nil(t, err)
-	require.Same(t, procState.(*osProcessState).state, wantProcState)
+	require.Same(t, procState.(*processStateDelegater).delegate, wantProcState)
 }
 
 func TestNewOsProcessWithStarter(t *testing.T) {
