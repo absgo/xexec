@@ -1,6 +1,7 @@
 package xexec
 
 import (
+	"os/exec"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -12,7 +13,7 @@ func TestNewOsExec(t *testing.T) {
 	require.IsType(t, &osExec{}, e)
 }
 
-func TestExec_StartProcess(t *testing.T) {
+func TestOsExec_StartProcess(t *testing.T) {
 	t.Parallel()
 	e := NewOsExec()
 	cmdLine := getSleepCmdLine(10)
@@ -24,4 +25,33 @@ func TestExec_StartProcess(t *testing.T) {
 	require.Nil(t, proc.Kill())
 	_, err = proc.Wait()
 	require.Nil(t, err)
+}
+
+func TestOsExec_LookPath(t *testing.T) {
+	t.Parallel()
+	e := NewOsExec()
+	tests := []struct {
+		file string
+	}{
+		// Unix
+		{
+			file: "ls",
+		},
+		{
+			file: "echo",
+		},
+		// Windows
+		{
+			file: "notepad",
+		},
+		{
+			file: "calc",
+		},
+	}
+	for _, tt := range tests {
+		gotPath, err := e.LookPath(tt.file)
+		wantPath, wantErr := exec.LookPath(tt.file)
+		require.Equal(t, gotPath, wantPath)
+		require.Equal(t, err, wantErr)
+	}
 }
