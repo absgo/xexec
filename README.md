@@ -4,7 +4,7 @@ It's a Go library that allows you to abstract the operations related to process 
 
 ## Usage
 You can create an instance of `Exec` as below:
-```
+```go
 import github.com/absgo/xexec
 func main() {
     exec := xexec.NewOsExec()
@@ -12,7 +12,7 @@ func main() {
 ```
 Then, all the operations related to process execution can be achieved via the `Exec` instance.  
 For example, to start a process, you can use:
-```
+```go
 proc, err := exec.StartProcess(&ProcessConf{
 		Name: "ls",
 		Args: []string{"ls", "/"},
@@ -30,14 +30,14 @@ log.Print("Success")
 ## Unit Test
 If you want to run the unit tests by yourself, follow the steps below.  
 The unit tests depend on some simple executables. You can use the command below to build the executables.
-```
+```bash
 mkdir bin
 cd bin
 go build ../internal/...
 cd ..
 ```
 Then, you can run the unit tests as below:
-```
+```bash
 go test ./...
 ```
 The unit tests use *mockery* + *testify* for mocking. If you want to generate new mock types, see 
