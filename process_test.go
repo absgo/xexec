@@ -7,17 +7,12 @@ import (
 	"os"
 	"os/exec"
 	"reflect"
-	"strconv"
 	"syscall"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 )
-
-func getSleepCmdLine(sleepSec int) []string {
-	return []string{"./bin/sleep", strconv.Itoa(sleepSec)}
-}
 
 func TestNewOsProcess(t *testing.T) {
 	t.Parallel()
