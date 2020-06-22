@@ -1,6 +1,11 @@
 # xexec
 It's a Go library that allows you to abstract the operations related to process execution.  
 ![CI Status](https://github.com/absgo/xexec/workflows/CI/badge.svg)
+## Install
+Install using the following command:
+```bash
+go get -u github.com/absgo/xexec
+```
 
 ## Usage
 You can create an instance of `Exec` as below:
