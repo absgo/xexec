@@ -46,4 +46,9 @@ Then, you can run the unit tests as below:
 go test ./...
 ```
 The unit tests use *mockery* + *testify* for mocking. If you want to generate new mock types, see 
-[here](https://github.com/vektra/mockery) for the way to install *mockery*.
+[here](https://github.com/vektra/mockery) for the way to install *mockery*.  
+There're `go:genenerate` commands in the files named `generate.go`.  You can use the following command to 
+generate the mock types again:
+```go
+go generate ./...
+```
